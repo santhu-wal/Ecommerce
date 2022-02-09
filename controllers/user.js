@@ -51,41 +51,6 @@ exports.login = async (req, res) => {
 };
 
 
-exports.changePassword = async (req, res) => {
-    try {
-        const id = req.user.id;
-        const { password, newpassword } = req.body;
-        let result = await db("select * from users where id = ?", id)
-        if (!(await bcrypt.compare(password, result[0].password))) {
-            return res.status(400).send("password is incorrect");
-        }
-        const encryptedPassword = await bcrypt.hash(newpassword, 10);
-        await db("update users set password=? where id=?", [encryptedPassword, id]);
-        res.status(200).json({ success: true, message: "password changed succesfully" });
-    }
-    catch (err) {
-        return res.status(500).send(err);
-    }
-}
-
-// check this
-exports.getinfo = async (req, res) => {
-    try {
-        if (req.user.role == 'admin') {
-            let result = await db("SELECT U.id, U.username, U.emailId, (SELECT COUNT(*) FROM notes  WHERE notes.userId = U.id) AS notesCount FROM users U ");
-            res.status(200).send(result)
-        } else {
-            const id = req.user.id;
-            var sql = "SELECT id, username, emailId, (SELECT COUNT(*) FROM notes  WHERE notes.userId = users.id) AS notesCount FROM users  WHERE id =?";
-            const result2 = await db(sql, id);
-            res.status(200).send(result2);
-        }
-    } catch (err) {
-        res.send(err.message);
-    }
-}
-
-
 exports.deleteAcc = async (req, res) => {
     try {
         const id = req.user.id;
